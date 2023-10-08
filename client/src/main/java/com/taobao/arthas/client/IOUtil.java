@@ -37,6 +37,7 @@ public final class IOUtil {
                 }
             }
         };
+        reader.setName("reader");
 
         writer = new Thread() {
             @Override
@@ -56,7 +57,7 @@ public final class IOUtil {
                 }
             }
         };
-
+        writer.setName("writer");
         writer.setPriority(Thread.currentThread().getPriority() + 1);
 
         writer.start();
