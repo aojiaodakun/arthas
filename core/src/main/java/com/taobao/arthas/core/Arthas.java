@@ -16,15 +16,49 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Properties;
 
 /**
  * Arthas启动器
+ * TODO：默认attach demo.MathGame进程，需先启动demo.MathGame
  */
 public class Arthas {
 
+    public static void main(String[] args) {
+        try {
+            new Arthas(args);
+        } catch (Throwable t) {
+            AnsiLog.error("Start arthas failed, exception stack trace: ");
+            t.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
     private Arthas(String[] args) throws Exception {
-        attachAgent(parse(args));
+        String[] newArgs = args;
+        String pid = "";
+        boolean isContainsPid = false;
+        for (String tempString : args) {
+            if (tempString.equals("-pid")) {
+                isContainsPid = true;
+                break;
+            }
+        }
+        if (!isContainsPid) {
+            Map<Long, String> pid2mainClassMap = ProcessUtils.listProcessByJps(false);
+            for (Map.Entry<Long, String> entry : pid2mainClassMap.entrySet()) {
+                if (entry.getValue().endsWith("demo.MathGame")) {
+                    pid = String.valueOf(entry.getKey());
+                    break;
+                }
+            }
+            newArgs = new String[args.length + 2];
+            System.arraycopy(args, 0, newArgs, 0, args.length);
+            newArgs[newArgs.length-2] = "-pid";
+            newArgs[newArgs.length-1] = pid;
+        }
+        attachAgent(parse(newArgs));
     }
 
     private Configure parse(String[] args) {
@@ -156,13 +190,5 @@ public class Arthas {
         }
     }
 
-    public static void main(String[] args) {
-        try {
-            new Arthas(args);
-        } catch (Throwable t) {
-            AnsiLog.error("Start arthas failed, exception stack trace: ");
-            t.printStackTrace();
-            System.exit(-1);
-        }
-    }
+
 }

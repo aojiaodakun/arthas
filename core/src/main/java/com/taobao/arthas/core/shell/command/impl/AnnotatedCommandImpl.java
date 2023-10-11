@@ -112,4 +112,8 @@ public class AnnotatedCommandImpl extends Command {
         }
     }
 
+    @Override
+    public String toString() {
+        return clazz.getName();
+    }
 }
