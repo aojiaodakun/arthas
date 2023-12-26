@@ -46,6 +46,9 @@ public class AgentBootstrap {
                 log.createNewFile();
             }
             ps = new PrintStream(new FileOutputStream(log, true));
+
+            // TODO,KD 设置properties名称
+            System.setProperty("arthas.config.name", "kd_arthas");
         } catch (Throwable t) {
             t.printStackTrace(ps);
         }

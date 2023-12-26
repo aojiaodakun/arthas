@@ -11,13 +11,17 @@ import com.taobao.text.util.RenderUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static com.taobao.text.ui.Element.label;
 
@@ -25,7 +29,9 @@ import static com.taobao.text.ui.Element.label;
  * @author beiwei30 on 16/11/2016.
  */
 public class ArthasBanner {
-    private static final String LOGO_LOCATION = "/com/taobao/arthas/core/res/logo.txt";
+//    private static final String LOGO_LOCATION = "/com/taobao/arthas/core/res/logo.txt";
+    // TODO hzk,logo,soft字体
+    private static final String LOGO_LOCATION = "/com/taobao/arthas/core/res/kd_logo.txt";
     private static final String CREDIT_LOCATION = "/com/taobao/arthas/core/res/thanks.txt";
     private static final String VERSION_LOCATION = "/com/taobao/arthas/core/res/version";
     private static final String WIKI = "https://arthas.aliyun.com/doc";
@@ -46,18 +52,19 @@ public class ArthasBanner {
         try {
             String logoText = IOUtils.toString(ShellServerOptions.class.getResourceAsStream(LOGO_LOCATION));
             THANKS = IOUtils.toString(ShellServerOptions.class.getResourceAsStream(CREDIT_LOCATION));
-            InputStream versionInputStream = ShellServerOptions.class.getResourceAsStream(VERSION_LOCATION);
-            if (versionInputStream != null) {
-                VERSION = IOUtils.toString(versionInputStream).trim();
-            } else {
-                String implementationVersion = ArthasBanner.class.getPackage().getImplementationVersion();
-                if (implementationVersion != null) {
-                    VERSION = implementationVersion;
-                }
-            }
+            // TODO hzk,隐藏版本号
+//            InputStream versionInputStream = ShellServerOptions.class.getResourceAsStream(VERSION_LOCATION);
+//            if (versionInputStream != null) {
+//                VERSION = IOUtils.toString(versionInputStream).trim();
+//            } else {
+//                String implementationVersion = ArthasBanner.class.getPackage().getImplementationVersion();
+//                if (implementationVersion != null) {
+//                    VERSION = implementationVersion;
+//                }
+//            }
 
             StringBuilder sb = new StringBuilder();
-            String[] LOGOS = new String[6];
+            String[] LOGOS = new String[8];
             int i = 0, j = 0;
             for (String line : logoText.split("\n")) {
                 sb.append(line);
@@ -70,12 +77,15 @@ public class ArthasBanner {
             }
 
             TableElement logoTable = new TableElement();
-            logoTable.row(label(LOGOS[0]).style(Decoration.bold.fg(Color.red)),
-                    label(LOGOS[1]).style(Decoration.bold.fg(Color.yellow)),
-                    label(LOGOS[2]).style(Decoration.bold.fg(Color.cyan)),
-                    label(LOGOS[3]).style(Decoration.bold.fg(Color.magenta)),
-                    label(LOGOS[4]).style(Decoration.bold.fg(Color.green)),
-                    label(LOGOS[5]).style(Decoration.bold.fg(Color.blue)));
+            logoTable.row(
+                    label(LOGOS[0]).style(Decoration.bold.fg(Color.blue)),
+                    label(LOGOS[1]).style(Decoration.bold.fg(Color.blue)),
+                    label(LOGOS[2]).style(Decoration.bold.fg(Color.red)),
+                    label(LOGOS[3]).style(Decoration.bold.fg(Color.yellow)),
+                    label(LOGOS[4]).style(Decoration.bold.fg(Color.cyan)),
+                    label(LOGOS[5]).style(Decoration.bold.fg(Color.magenta)),
+                    label(LOGOS[6]).style(Decoration.bold.fg(Color.green)),
+                    label(LOGOS[7]).style(Decoration.bold.fg(Color.blue)));
             LOGO = RenderUtil.render(logoTable);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -110,19 +120,40 @@ public class ArthasBanner {
         return welcome(Collections.<String, String>emptyMap());
     }
 
+    /**
+     * Welcome欢迎语定制
+     * 隐藏：版本号，main_class，pid
+     * 增加：arthas文字形图标修改，增加sessionid，增加指令白名单展示，支持map形式追加（MC配置）
+     * @param infos
+     * @return
+     */
     public static String welcome(Map<String, String> infos) {
         logger.info("Current arthas version: {}, recommend latest version: {}", version(), latestVersion());
         TableElement table = new TableElement().rightCellPadding(1)
                         .row("wiki", wiki())
                         .row("tutorials", tutorials())
-                        .row("version", version())
-                        .row("main_class", PidUtils.mainClass())
-                        .row("pid", PidUtils.currentPid())
+//                        .row("version", version())
+//                        .row("main_class", PidUtils.mainClass())
+//                        .row("pid", PidUtils.currentPid())
                         .row("time", DateUtils.getCurrentDate());
         for (Entry<String, String> entry : infos.entrySet()) {
             table.row(entry.getKey(), entry.getValue());
         }
-
+        // 自定义kv欢迎语
+        String welcomeExtend = System.getProperty("arthas.welcome.extend");
+        if (welcomeExtend != null && !welcomeExtend.equals("")) {
+            try {
+                Properties prop = new Properties();
+                StringReader reader = new StringReader(welcomeExtend);
+                prop.load(reader);
+                Map<String, String> tempMap = (Map) prop;
+                for (Entry<String, String> entry : tempMap.entrySet()) {
+                    table.row(entry.getKey(), entry.getValue());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         return logo() + "\n" + RenderUtil.render(table);
     }
 

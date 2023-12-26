@@ -22,6 +22,12 @@ import java.util.Properties;
 /**
  * Arthas启动器
  * TODO：默认attach demo.MathGame进程，需先启动demo.MathGame
+ * args
+ * 1、
+ * D:\tool\java\jdk1.8.0_73\bin\java.exe -jar C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-core.jar -core C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-core.jar -agent C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-agent.jar
+ * 2、包含-tunnel-server，需启动com.alibaba.arthas.tunnel.server.app.ArthasTunnelApplication
+ * D:\tool\java\jdk1.8.0_73\bin\java.exe -jar C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-core.jar -core C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-core.jar -agent C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-agent.jar -tunnel-server ws://localhost:7777/ws -app-name demoapp
+ *
  */
 public class Arthas {
 

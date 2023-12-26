@@ -75,6 +75,7 @@
         <module>testcase</module>
         <module>site</module>
         <module>packaging</module>
+        <module>debug-hzk</module>
     </modules>
 
     <properties>

@@ -84,16 +84,25 @@ public class VmToolCommand extends AnnotatedCommand {
     static {
         String libName = VmToolUtils.detectLibName();
         if (libName != null) {
-            CodeSource codeSource = VmToolCommand.class.getProtectionDomain().getCodeSource();
-            if (codeSource != null) {
-                try {
-                    File bootJarPath = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-                    File soFile = new File(bootJarPath.getParentFile(), "lib" + File.separator + libName);
-                    if (soFile.exists()) {
-                        defaultLibPath = soFile.getAbsolutePath();
+            boolean isDebug = Boolean.getBoolean("arthas.debug");
+            if (!isDebug) {
+                CodeSource codeSource = VmToolCommand.class.getProtectionDomain().getCodeSource();
+                if (codeSource != null) {
+                    try {
+                        File bootJarPath = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+                        File soFile = new File(bootJarPath.getParentFile(), "lib" + File.separator + libName);
+                        if (soFile.exists()) {
+                            defaultLibPath = soFile.getAbsolutePath();
+                        }
+                    } catch (Throwable e) {
+                        logger.error("can not find VmTool so", e);
                     }
-                } catch (Throwable e) {
-                    logger.error("can not find VmTool so", e);
+                }
+            } else {
+                String userDir = System.getProperty("user.dir");
+                File soFile = new File(userDir, "lib" + File.separator + libName);
+                if (soFile.exists()) {
+                    defaultLibPath = soFile.getAbsolutePath();
                 }
             }
         }

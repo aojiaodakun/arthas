@@ -158,9 +158,9 @@ public class ShellImpl implements Shell {
     }
 
     private void setPrompt(){
-        this.prompt = "[arthas@" +
-                session.getPid() +
-                "]$ ";
+        // TODO hzk
+//        this.prompt = "[arthas@" + session.getPid() + "]$ ";
+        this.prompt = "[arthas@]$ ";
     }
 
     public ShellImpl init() {

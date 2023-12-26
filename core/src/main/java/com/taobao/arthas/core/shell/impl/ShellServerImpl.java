@@ -3,6 +3,9 @@ package com.taobao.arthas.core.shell.impl;
 import com.alibaba.arthas.deps.org.slf4j.Logger;
 import com.alibaba.arthas.deps.org.slf4j.LoggerFactory;
 import com.alibaba.arthas.tunnel.client.TunnelClient;
+import com.taobao.arthas.core.command.model.MessageModel;
+import com.taobao.arthas.core.command.model.ResetModel;
+import com.taobao.arthas.core.command.model.ShutdownModel;
 import com.taobao.arthas.core.server.ArthasBootstrap;
 import com.taobao.arthas.core.shell.Shell;
 import com.taobao.arthas.core.shell.ShellServer;
@@ -21,12 +24,16 @@ import com.taobao.arthas.core.shell.system.impl.JobControllerImpl;
 import com.taobao.arthas.core.shell.term.Term;
 import com.taobao.arthas.core.shell.term.TermServer;
 import com.taobao.arthas.core.util.ArthasBanner;
+import com.taobao.arthas.core.util.DateUtils;
+import com.taobao.arthas.core.util.affect.EnhancerAffect;
 
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +65,7 @@ public class ShellServerImpl extends ShellServer {
     private final Future<Void> sessionsClosed = Future.future();
     private ScheduledExecutorService scheduledExecutorService;
     private JobControllerImpl jobController = new GlobalJobControllerImpl();
+    private long noSessionMillis;
 
     public ShellServerImpl(ShellServerOptions options) {
         this.welcomeMessage = options.getWelcomeMessage();
@@ -96,7 +104,12 @@ public class ShellServerImpl extends ShellServer {
         }
 
         ShellImpl session = createShell(term);
-        tryUpdateWelcomeMessage();
+        // TODO hzk,全局只能有一个会话,安全考虑
+        if (sessions.size() > 0) {
+            session.close("other person is using arthas,close current session");
+            return;
+        }
+        tryUpdateWelcomeMessage(session);
         session.setWelcome(welcomeMessage);
         session.closedFuture.setHandler(new SessionClosedHandler(this, session));
         session.init();
@@ -104,16 +117,20 @@ public class ShellServerImpl extends ShellServer {
         session.readline(); // Now readline
     }
 
-    private void tryUpdateWelcomeMessage() {
+    private void tryUpdateWelcomeMessage(ShellImpl session) {
+        Map<String, String> welcomeMap = new LinkedHashMap<>();
         TunnelClient tunnelClient = ArthasBootstrap.getInstance().getTunnelClient();
         if (tunnelClient != null) {
             String id = tunnelClient.getId();
             if (id != null) {
-                Map<String, String> welcomeInfos = new HashMap<String, String>();
-                welcomeInfos.put("id", id);
-                this.welcomeMessage = ArthasBanner.welcome(welcomeInfos);
+                welcomeMap.put("id", id);
             }
         }
+        // TODO hzk,welcome增加sessionid
+        welcomeMap.put("timeout", DateUtils.formatDate(new Date(System.currentTimeMillis() + timeoutMillis)));
+        welcomeMap.put("sessionid", session.id);
+        welcomeMap.put("disabledCommands", System.getProperty("arthas.disabledCommands"));
+        this.welcomeMessage = ArthasBanner.welcome(welcomeMap);
     }
 
     @Override
@@ -155,6 +172,25 @@ public class ShellServerImpl extends ShellServer {
             String reason = "session is inactive for " + timeOutInMinutes + " min(s).";
             session.close(reason);
         }
+//        /**
+//         * TODO hzk,10分钟没有客户端会话，关闭server
+//         */
+//        if (sessions.size() == 0) {
+//            if (noSessionMillis == 0) {
+//                noSessionMillis = System.currentTimeMillis();
+//            } else {
+//                long diff = now - noSessionMillis;
+//                long serverTimeout = Long.getLong("arthas.server.timeout", 1000 * 60 * 1);
+//                if (diff > serverTimeout) {
+//                    // n分钟没有客户端连接，重置所有的增强类，关闭server
+//                    ArthasBootstrap arthasBootstrap = ArthasBootstrap.getInstance();
+//                    System.out.println("arthasBootstrap.destroy()");
+//                    arthasBootstrap.destroy();
+//                }
+//            }
+//        } else {
+//            noSessionMillis = 0;
+//        }
     }
 
     public synchronized void setTimer() {

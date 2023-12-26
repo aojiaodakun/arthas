@@ -207,13 +207,19 @@ public class ArthasBootstrap {
             }
         }
         if (spyClass == null) {
-            CodeSource codeSource = ArthasBootstrap.class.getProtectionDomain().getCodeSource();
-            if (codeSource != null) {
-                File arthasCoreJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-                File spyJarFile = new File(arthasCoreJarFile.getParentFile(), ARTHAS_SPY_JAR);
-                instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(spyJarFile));
+            boolean isDebug = Boolean.getBoolean("arthas.debug");
+            if (!isDebug) {
+                CodeSource codeSource = ArthasBootstrap.class.getProtectionDomain().getCodeSource();
+                if (codeSource != null) {
+                    File arthasCoreJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+                    File spyJarFile = new File(arthasCoreJarFile.getParentFile(), ARTHAS_SPY_JAR);
+                    instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(spyJarFile));
+                } else {
+                    throw new IllegalStateException("can not find " + ARTHAS_SPY_JAR);
+                }
             } else {
-                throw new IllegalStateException("can not find " + ARTHAS_SPY_JAR);
+                File spyJarFile = new File("C:\\Users\\Administrator\\.arthas\\lib\\3.7.1\\arthas", ARTHAS_SPY_JAR);
+                instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(spyJarFile));
             }
         }
     }
@@ -275,7 +281,9 @@ public class ArthasBootstrap {
         MapPropertySource mapPropertySource = new MapPropertySource("args", copyMap);
         arthasEnvironment.addFirst(mapPropertySource);
 
-        tryToLoadArthasProperties();
+//        tryToLoadArthasProperties();
+        // TODO hzk,kd_arthas.properties
+        tryToLoadKdArthasProperties();
 
         configure = new Configure();
         BinderUtils.inject(arthasEnvironment, configure);
@@ -332,7 +340,6 @@ public class ArthasBootstrap {
                 } else {
                     overrideAll = Boolean.parseBoolean(properties.getProperty(CONFIG_OVERRIDE_ALL, "false"));
                 }
-
                 PropertySource<?> propertySource = new PropertiesPropertySource(location, properties);
                 if (overrideAll) {
                     arthasEnvironment.addFirst(propertySource);
@@ -343,6 +350,25 @@ public class ArthasBootstrap {
         }
 
     }
+
+    // try to load kd_arthas.properties
+    private void tryToLoadKdArthasProperties() throws IOException {
+        Properties properties = new Properties();
+        properties.load(ArthasBootstrap.class.getResourceAsStream("/kd_arthas.properties"));
+        boolean overrideAll = false;
+        if (arthasEnvironment.containsProperty(CONFIG_OVERRIDE_ALL)) {
+            overrideAll = arthasEnvironment.getRequiredProperty(CONFIG_OVERRIDE_ALL, boolean.class);
+        } else {
+            overrideAll = Boolean.parseBoolean(properties.getProperty(CONFIG_OVERRIDE_ALL, "false"));
+        }
+        PropertySource<?> propertySource = new PropertiesPropertySource("kd_arthas.properties", properties);
+        if (overrideAll) {
+            arthasEnvironment.addFirst(propertySource);
+        } else {
+            arthasEnvironment.addLast(propertySource);
+        }
+    }
+
 
     /**
      * Bootstrap arthas server
@@ -418,6 +444,8 @@ public class ArthasBootstrap {
 
             List<String> disabledCommands = new ArrayList<String>();
             if (configure.getDisabledCommands() != null) {
+                // TODO hzk,设置arthas.disabledCommands系统变量
+                System.setProperty("arthas.disabledCommands", configure.getDisabledCommands());
                 String[] strings = StringUtils.tokenizeToStringArray(configure.getDisabledCommands(), ",");
                 if (strings != null) {
                     disabledCommands.addAll(Arrays.asList(strings));
