@@ -231,7 +231,7 @@
                 <artifactId>tools</artifactId>
                 <version>1.8.0</version>
                 <scope>system</scope>
-                <systemPath>D:\tool\java\jdk1.8.0_73\lib\tools.jar</systemPath>
+                <systemPath>${java.home}\..\lib\tools.jar</systemPath>
             </dependency>
         </dependencies>
     </dependencyManagement>

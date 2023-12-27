@@ -1,7 +1,9 @@
 arthas源码编译，版本：3.7.1
 IDEA，Project Structure，SDK修改成8以上
 
+arthas-all.pom
 手动添加D:\tool\java\jdk1.8.0_73\lib\tools.jar进IDEA依赖
+
 
 ***
 输出class文件开关
