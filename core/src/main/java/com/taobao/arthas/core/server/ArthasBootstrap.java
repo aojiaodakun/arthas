@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -127,6 +128,7 @@ public class ArthasBootstrap {
 
     private HttpSessionManager httpSessionManager;
     private SecurityAuthenticator securityAuthenticator;
+    private String generatePassword;
 
     private ArthasBootstrap(Instrumentation instrumentation, Map<String, String> args) throws Throwable {
         this.instrumentation = instrumentation;
@@ -361,6 +363,11 @@ public class ArthasBootstrap {
         } else {
             overrideAll = Boolean.parseBoolean(properties.getProperty(CONFIG_OVERRIDE_ALL, "false"));
         }
+        // TODO hzk,生成随机密码
+        String password = UUID.randomUUID().toString();
+        generatePassword = password;
+        properties.put("arthas.password", password);
+
         PropertySource<?> propertySource = new PropertiesPropertySource("kd_arthas.properties", properties);
         if (overrideAll) {
             arthasEnvironment.addFirst(propertySource);
@@ -714,5 +721,9 @@ public class ArthasBootstrap {
 
     public Configure getConfigure() {
         return configure;
+    }
+
+    public String getPassword() {
+        return generatePassword;
     }
 }

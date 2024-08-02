@@ -264,7 +264,7 @@ public class ProcessUtils {
         // -http-port ${HTTP_PORT} \
         // -core "${arthas_lib_dir}/arthas-core.jar" \
         // -agent "${arthas_lib_dir}/arthas-agent.jar"
-
+        System.out.println("!!!command=" + command);
         ProcessBuilder pb = new ProcessBuilder(command);
         // https://github.com/alibaba/arthas/issues/2166
         pb.environment().put("JAVA_TOOL_OPTIONS", "");

@@ -1,8 +1,14 @@
 package com.hzk;
 
+import com.taobao.arthas.core.GlobalOptions;
+import com.taobao.arthas.core.server.ArthasBootstrap;
+
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -27,13 +33,32 @@ public class MathGameAttach {
 
     private static List<String> nameList = Arrays.asList("zhangsan", "lisi", "wangwu");
 
+    private static Map<String, String> map = new HashMap(){
+        {
+            put("a", "a");
+            put("b", "b");
+            put("c", "c");
+            put("d", "d");
+        }
+    };
+
     public static void main(String[] args) throws Exception {
+        try {
+            Class<?> aClass = ClassLoader.getSystemClassLoader().loadClass("com.taobao.arthas.agent334.AgentBootstrap");
+            System.out.println(aClass);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        GlobalOptions.isDump = true;
         MathGameAttach game = new MathGameAttach();
         // TODO hzk,启动arthas-server
         // TODO,KD 设置properties名称
         System.setProperty("arthas.config.name", "kd_arthas");
 //        new ArthasAgent("C:\\Users\\Administrator\\.arthas\\lib\\3.7.1\\arthas").init();
-        new HzkArthasAgent().init();
+        HzkArthasAgent hzkArthasAgent = new HzkArthasAgent();
+        hzkArthasAgent.init();
+        String arthasPassword = HzkArthasAgent.getArthasPassword();
 
         new Thread(() -> {
             System.out.println("start");
@@ -47,7 +72,7 @@ public class MathGameAttach {
         while (true) {
             game.run();
 //            game.isEmpty("靓仔");
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(5);
         }
 
 

@@ -6,12 +6,25 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class MathGame {
+
+    static {
+//        String str1 = "attachmentServer.maxFileSize=1052428800\n" +
+//                "attachmentServer.tcpUrl={{attachmentServer.ip}}:{{attachmentServer.tcpport}}\n" +
+//                "attachmentServer.url=http://172.17.51.95:8100/fileserver\n" +
+//                "attachment.fileserver=https://{{attachment.fileserver.ip_port}}/attachment/download.do?path=/\n" +
+//                "fileserver.attachment.preview=true\n" +
+//                "check.file.zip=";
+//        System.setProperty("arthas.welcome.extend", str1);
+        System.setProperty("arthas.server.timeout", "6000000000");
+    }
+
     private static Random random = new Random();
 
     private int illegalArgumentCount = 0;
 
     public static void main(String[] args) throws InterruptedException {
         MathGame game = new MathGame();
+
         while (true) {
             game.run();
             TimeUnit.SECONDS.sleep(1);

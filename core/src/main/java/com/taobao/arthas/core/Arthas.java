@@ -25,7 +25,7 @@ import java.util.Properties;
  * args
  * 1、
  * D:\tool\java\jdk1.8.0_73\bin\java.exe -jar C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-core.jar -core C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-core.jar -agent C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-agent.jar
- * 2、包含-tunnel-server，需启动com.alibaba.arthas.tunnel.server.app.ArthasTunnelApplication
+ * 2、包含-tunnel-server，需启动com.alibaba.arthas.tunnel.server.app.ArthasTunnelApplication，单机redis-server
  * D:\tool\java\jdk1.8.0_73\bin\java.exe -jar C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-core.jar -core C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-core.jar -agent C:\Users\Administrator\.arthas\lib\3.7.1\arthas\arthas-agent.jar -tunnel-server ws://localhost:7777/ws -app-name demoapp
  *
  */
@@ -159,6 +159,8 @@ public class Arthas {
             configure.setArthasAgent(encodeArg(arthasAgentPath));
             configure.setArthasCore(encodeArg(configure.getArthasCore()));
             try {
+                System.out.println("arthasAgentPath=" + arthasAgentPath);
+                System.out.println("loadAgentArgs=" + configure.getArthasCore() + ";" + configure.toString());
                 virtualMachine.loadAgent(arthasAgentPath,
                         configure.getArthasCore() + ";" + configure.toString());
             } catch (IOException e) {

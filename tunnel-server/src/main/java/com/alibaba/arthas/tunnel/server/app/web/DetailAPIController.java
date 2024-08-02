@@ -41,6 +41,10 @@ public class DetailAPIController {
     @RequestMapping("/api/tunnelApps")
     @ResponseBody
     public Set<String> tunnelApps(HttpServletRequest request, Model model) {
+        /**
+         * tunnel-server/src/main/resources/application.properties
+         * arthas.enable-detail-pages=true
+         */
         if (!arthasProperties.isEnableDetailPages()) {
             throw new IllegalAccessError("not allow");
         }

@@ -9,6 +9,10 @@ arthas-all.pom
 输出class文件开关
 GlobalOptions.isDump = true
 
+【常见问题梳理】
+1、-XX:+StartAttachListener
+
+
 
 一、sysprop
 1、sysprop

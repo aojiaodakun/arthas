@@ -22,6 +22,7 @@ import io.termd.core.function.Consumer;
 import io.termd.core.function.Supplier;
 import io.termd.core.telnet.TelnetBootstrap;
 import io.termd.core.telnet.TelnetHandler;
+import io.termd.core.telnet.netty.TelnetChannelHandler;
 import io.termd.core.tty.TtyConnection;
 
 /**
@@ -65,6 +66,8 @@ public class NettyHttpTelnetBootstrap extends TelnetBootstrap {
                             @Override
                             public void initChannel(SocketChannel ch) throws Exception {
                                 ch.pipeline().addLast(new ProtocolDetectHandler(channelGroup, handlerFactory, factory, workerGroup, httpSessionManager));
+                                // TODO hzk，不支持http协议
+//                                ch.pipeline().addLast(new TelnetChannelHandler(handlerFactory));
                             }
                         });
 
