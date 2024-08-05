@@ -1,5 +1,6 @@
 package com.hzk;
 
+import com.taobao.arthas.core.server.ArthasBootstrap;
 import net.bytebuddy.agent.ByteBuddyAgent;
 
 import java.arthas.SpyAPI;
@@ -21,6 +22,8 @@ public class HzkArthasAgent {
     private static final String ARTHAS_BOOTSTRAP = "com.taobao.arthas.core.server.ArthasBootstrap";
     private static final String GET_INSTANCE = "getInstance";
     private static final String IS_BIND = "isBind";
+    private static Class<?> bootstrapClass;
+    private static Object bootstrapObject;
 
     private String errorMessage;
 
@@ -132,7 +135,9 @@ public class HzkArthasAgent {
              * ArthasBootstrap bootstrap = ArthasBootstrap.getInstance(inst);
              * </pre>
              */
-            Class<?> bootstrapClass = arthasClassLoader.loadClass(ARTHAS_BOOTSTRAP);
+            // TODO hzk，static防止arthasClassLoader产生的class和object
+//            Class<?> bootstrapClass = arthasClassLoader.loadClass(ARTHAS_BOOTSTRAP);
+            bootstrapClass = arthasClassLoader.loadClass(ARTHAS_BOOTSTRAP);
             Object bootstrap = bootstrapClass.getMethod(GET_INSTANCE, Instrumentation.class, Map.class).invoke(null,
                     instrumentation, configMap);
             boolean isBind = (Boolean) bootstrapClass.getMethod(IS_BIND).invoke(bootstrap);
@@ -140,6 +145,7 @@ public class HzkArthasAgent {
                 String errorMsg = "Arthas server port binding failed! Please check $HOME/logs/arthas/arthas.log for more details.";
                 throw new RuntimeException(errorMsg);
             }
+            bootstrapObject = bootstrap;
         } catch (Throwable e) {
             errorMessage = e.getMessage();
             if (!slientInit) {
@@ -168,5 +174,14 @@ public class HzkArthasAgent {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    public static String getArthasPassword() {
+        try {
+            String bootstrap = (String)bootstrapClass.getMethod("getPassword").invoke(bootstrapObject);
+            return bootstrap;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
